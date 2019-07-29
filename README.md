@@ -5,3 +5,5 @@ This repository contain all the code done for the subject BSG(Bioinformatics and
 The part 1 contains the code of the bioinformatics part. Consist of optimization problems using GNU Linear Programming Kit.
 
 The part 2 contains the code of the statistical genetics part.
+
+Subject info: https://www.fib.upc.edu/en/studies/masters/master-innovation-and-research-informatics/curriculum/syllabus/BSG-MIRI
