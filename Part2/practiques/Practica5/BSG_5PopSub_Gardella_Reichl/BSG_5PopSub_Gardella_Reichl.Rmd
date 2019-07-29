@@ -1,0 +1,261 @@
+---
+title: "BSG - Population Substructure"
+author: "Ricard Gardella, Sofia B. Reichl"
+date: "15th December 2018"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(HardyWeinberg)
+library(genetics)
+library(ggplot2)
+library(gridExtra)
+library(LDheatmap)
+library(haplo.stats)
+library(MASS)
+set.seed(123)
+```
+
+# Exercise 1
+
+**The file SNPChr20.rda contains genotype information of 310 individuals of unknown background. The genotype information concerns 50.000 SNPs on chromosome 20. Load this data into the R environment. The data file contains a matrix Y containing the allele counts (0,1 or 2) for 50.000 SNPs for one of the alleles of each SNP.**
+
+```{r load}
+setwd('C:/Master/3rd Semestre/BSG - Bioinformatics and Statistical Genetics/Statistical Genetics/Assignments/Assignment5/');load('SNPChr20.rda')
+#load('/Users/ricardgardellagarcia/Documents/Master Data science/BSG/Part2/practiques/practica5/SNPChr20.rda')
+```
+
+# Exercise 2
+
+**Compute the Manhattan distance matrix between the 310 individuals (this may take a few minutes) Include a submatrix of dimension 5 by 5 with the distances between the first 5 individuals in your report**
+
+```{r eval=F}
+Y.manhattan = dist(Y, method = "manhattan",diag = FALSE)
+Y.manhattan = as.matrix(Y.manhattan)
+print("The first 5 rows of the Manhattan distance are:")
+Y.manhattan[1:5,1:5]
+```
+
+```{r echo=F}
+#Y.manhattan = dist(Y, method = "manhattan",diag = FALSE)
+#Y.manhattan = as.matrix(Y.manhattan)
+#save(Y.manhattan,file='Yman.rda')
+load('Yman.rda')
+print("The first 5 rows of the Manhattan distance are:")
+Y.manhattan[1:5,1:5]
+```
+
+
+# Execise 3 
+
+**Use metric multidimensional scaling to obtain a map of the individuals, and include your map in your report. Do you think the data come from one homogeneous population?**
+
+```{r eval=F}
+Y.dist = dist(Y)
+Y.dist = as.matrix(Y.dist)
+mds.out <- cmdscale(Y.dist,k=nrow(Y)-1,eig=TRUE)
+X <- mds.out$points[,1:2]
+```
+
+```{r echo=F}
+#Y.dist = dist(Y)
+#Y.dist = as.matrix(Y.dist)
+#save(Y.dist,file='Ydist.rda')
+load('Ydist.rda')
+mds.out <- cmdscale(Y.dist,k=nrow(Y)-1,eig=TRUE)
+X <- mds.out$points[,1:2]
+```
+
+```{r echo=F}
+ggplot() +
+  aes(x = X[,1], y = X[,2]) +
+  geom_point(color = "#0c4c8a") +
+  labs(title = "Exercise 3",
+    x = "PC1",
+    y = "PC2") +
+  theme_minimal()
+```
+
+We can see in a very clear way that the data is not homogeneous. This data come for three different populations as we can see in the plot.
+
+
+# Exercise 4
+
+**Report the first 10 eigenvalues of the solution.**
+
+Here are the first 10 eigenvalues of the solution:
+```{r}
+mds.out$eig[1:10]
+```
+
+# Exercise 5
+
+**Does a perfect representation of this n x n distance matrix exist, in n or fewer dimensions?**
+
+If we take a look at the variance explained by each of the first 10 dimensions we can see that:
+
+```{r echo=F}
+((mds.out$eig/sum(mds.out$eig))*100)[1:10]
+cat('\nSo, with the first 10 dimensions we are only explaining the',round(sum(((mds.out$eig/sum(mds.out$eig))*100)[1:10]),3),'% of the whole variance. That means that with k=10 the representation is quite poor.')
+```
+
+In order to get a **perfect** representation (which is a 100% of variance explained) we should use the n dimensions. 
+
+
+# Exercise 6 
+
+**What is the goodness-of-fit of a two-dimensional approximation to your distance matrix?**
+ 
+Here we report the GoF using k=2 in the distance matrix:
+```{r}
+gof <- cmdscale(Y.dist, k=2, eig=TRUE)
+gof <- gof$GOF
+```
+
+```{r echo=F}
+cat('The goodness of fit of a two-dimensional approximation is:',gof)
+```
+
+
+# Exercise 7
+
+**Make a plot of the estimated distances (according to your map of individuals) versus the observed distances.**
+
+Here we see the difference between the observed and the fitted values in the plot:
+
+```{r}
+X.dist = as.matrix(dist(X))
+x.1 <- Y.dist[lower.tri(Y.dist)] 
+x.2 <- X.dist[lower.tri(X.dist)] 
+```
+```{r echo=F}
+ggplot() +
+  aes(x = x.1, y = x.2) +
+  geom_point(color = "#0c4c8a") +
+  labs(title = "Observed vs. Predicted",
+    x = "Observed values",
+    y = "Fitted values") +
+  theme_minimal()
+```
+
+
+**Regress estimated distances on observed distances and report the coefficient of determination of the regression.**
+
+```{r echo=F}
+m1 <- lm(x.1 ~ x.2)
+cat('The coefficient of determination of this regression is:',summary(m1)$r.squared,', which is quite good.')
+```
+
+This means that the fitted values are explaining the 80% of the variance of the observed.
+
+
+# Exercise 8
+
+**Try now non-metric multidimensional scaling with your distance matrix. Use both a random initial configuration as well as the classical metric solution as an initial solution. Make a plot of the two-dimensional solution. Do the results support that the data come from one homogeneous population?**
+
+```{r}
+n <- nrow(Y)
+yinit <- matrix(runif(2*n),ncol=2)
+
+nmds.out.rand <- isoMDS(Y.dist,k=2,y=yinit)
+nmds.out.class <- isoMDS(Y.dist,k=2)
+```
+
+```{r echo=F}
+p81 <- ggplot() +
+  aes(x = nmds.out.rand$points[,1], y = nmds.out.rand$points[,2]) +
+  geom_point(color = "#0c4c8a") +
+  labs(title = "Random Initial Configuration",
+    x = "1st PC",
+    y = "2nd PC") +
+  theme_minimal()
+
+p82 <- ggplot() +
+  aes(x = nmds.out.class$points[,1], y = nmds.out.class$points[,2]) +
+  geom_point(color = "#0c4c8a") +
+  labs(title = "Classical Initial Configuration",
+    x = "1st PC",
+    y = "2nd PC") +
+  theme_minimal()
+
+grid.arrange(p81, p82, ncol=2)
+```
+
+We can see that, when reproducing the points with the random initial solution we only got two clusters, but, when using classical initial solution we got three. In both cases we can conclude that the data is not homogeneous, so it comes from several populations.
+
+
+# Exercise 9
+
+**Make again a plot of the estimated distances (according to your map of individuals) versus the observed distances, now for the two-dimensional solution of non-metric MDS.**
+
+```{r}
+ind.map <- nmds.out.class$points[,1:2]
+nmds.D <- as.matrix(dist(ind.map))
+x.2.nmds <- nmds.D[lower.tri(nmds.D)]
+```
+
+```{r echo=F}
+ggplot() +
+  aes(x = x.1, y = x.2.nmds) +
+  geom_point(color = "#0c4c8a") +
+  labs(title = "Observed vs. non-metric MDS Predicted ",
+    x = "Observed values",
+    y = "Fitted values (non-metric MDS)") +
+  theme_minimal()
+```
+
+**Regress estimated distances on observed distances and report the coefficient of determination of the regression. Is the fit better or worse than with metric MDS?**
+
+```{r echo=F}
+m2 <- lm(x.1 ~ x.2.nmds)
+cat('The coefficient of determination of this regression is:',summary(m2)$r.squared,', which is also quite good.')
+```
+
+This means that the fitted values are explaining the 80% of the variance of the observed. In this case the explained variance given by this fit is a bit higher than before but the difference between non-metric and metric MDS is not significant. 
+
+
+# Exercise 10
+
+**Compute the stress for a 1,2,3,4,...,n-dimensional solution, always using the classical MDS solution as an initial configuration. How many dimensions are necessary to obtain a good representation? Make a plot of the stress against the number of dimensions.**
+
+```{r eval=F, echo=F, results=F}
+m <- n/2 # We will use half of the variables we have.
+stress <- c()
+for(i in 1:m) {
+  out <- isoMDS(Y.dist,k=i)
+  stress[i] <- out$stress
+}
+#save(stress,file='stress.rda')
+```
+
+```{r echo=F}
+load('stress.rda')
+ggplot() +
+  aes(x = 1:length(stress), y = stress) +
+  geom_point(color = "#0c4c8a") +
+  labs(title = "Dimensions used vs. Stress",
+    x = "Dimensions (K)",
+    y = "Stress Level") +
+  theme_minimal()
+```
+
+We can see that, as much dimensions we take as less stress we have. It seems that the stress converges when k is big.
+
+# Exercise 11
+
+**Compute the correlation matrix between the first two dimensions of a metric MDS and the two-dimensional solution of a non-metric MDS. Make a scatterplot matrix of the 4 variables. Comment on your findings.**
+
+```{r}
+res <- data.frame(PC1.m=mds.out$points[,1],
+                  PC2.m=mds.out$points[,2],
+                  PC1.nm=nmds.out.class$points[,1],
+                  PC2.nm=nmds.out.class$points[,2])
+round(cor(res),digits=3)
+pairs(res, col= "#0c4c8a")
+```
+
+We see that the first dimension in MDS is correlated with the first dimension of NMDS. And it happens the same with the second dimensions of both implementations.  
+So, in general we can find high correlations between both methods.

@@ -1,0 +1,287 @@
+---
+title: "Statistical Genetics - 1st Assignment"
+author: "Ricard Gardella, Sofia B. Reichl"
+date: "7th November 2018"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# SNP Dataset
+
+The file *JPT22.rda* contains genotype counts in a generic notation (AA,AB,BB) for genetic variants on chromosome 22 of 104 individuals of a Japanese population of unrelated individuals. This data has been extracted from the 1000 genomes project at www.internationalgenome.org.  
+  
+  
+## Exercise 1
+
+The datafile contains a dataframe with the following columns: the RS identifier of the variant, rs, the position of the variant in base pair units, pos, the genotype counts for males, (mAA, mAB, mBB) and for females (fAA, fAB and fAB), the total genotype counts (AA, AB, BB) and the number of missing genotype results for the variant, nmis. \\ **Load this data into the R environment.**
+
+```{r echo=F}
+
+```
+
+```{r}
+load('JPT22.rda')
+str(JPT)
+```
+
+Here we can see the variables we have already said: mAA, mAB, mBB, fAA, fAB, fBB, AA, AB and BB.
+
+
+## Exercise 2
+
+```{r pressure, echo=F, cache=FALSE, results=FALSE, warning=FALSE, comment=FALSE, warning=F,out.extra=F}
+#library(genetics)
+attach(JPT)
+```
+
+**How many variants are there in this database? What percentage of the data is missing? How many individuals in the database are males and how many are females?**
+
+- *Variants*: We have the rs identifier of the variant. We need to know how many different variants do we have.
+```{r}
+(n_variants <- length(unique(rs)))
+```
+So, we have 1.100.472 different variants.
+
+- *Missing values:* As we have said at the beginning we have one variable that has the number of missing genotypes result. First we will see how many observations do we have and then, we will calculate the percentage of it.
+```{r, echo=F}
+#table(ifelse(nmis==0,'No Missings','Missings'))
+round(table(ifelse(nmis==0,'No Missings','Missings'))/nrow(JPT),3)
+```
+
+
+- *Males vs. Females*: To calculate the number of females we will calculate, for each variant, the sum of the total genotypes and after that we will calculate the maximum number. We will do the same with the males and the females:  
+```{r}
+t.sum<-c();m.sum<-c();f.sum<-c()
+for(i in 1:nrow(JPT)){
+  t.sum[i]<-sum(JPT[i,'AA']+JPT[i,'AB']+JPT[i,'BB'])
+  m.sum[i]<-sum(JPT[i,'mAA']+JPT[i,'mAB']+JPT[i,'mBB'])
+  f.sum[i]<-sum(JPT[i,'fAA']+JPT[i,'fAB']+JPT[i,'fBB'])
+}
+n.individuals<-max(t.sum) 
+n.males<-max(m.sum)
+n.females<-max(f.sum) 
+```
+
+```{r, echo=F}
+cat('We have',n.individuals,'individuals:',n.males,'are males and',n.females,'are females.')
+```
+
+
+## Exercise 3
+
+**For how many SNPs the genotype information is completely missing? What is the average percentage of missings per variant? Delete, for all posterior calculations, those variants that have 50% or more missing values. How many variants remain in your database?**
+
+- *Completely missing:* We will see how many observations (variants) do we have with nmis=number of individuals. These are the results:
+```{r, echo=F}
+table(ifelse(nmis==n.individuals,'Completely Missing','Not Completely Missing'))
+```
+
+We only have 1 variant full of missings:
+```{r, echo=F}
+JPT[which(nmis==n.individuals),]
+```
+
+- *Average of missings per variant:*
+
+```{r, echo=F}
+avg.missing <- mean(nmis)/n.individuals
+cat('The percentage of the average of missings per variant is:',avg.missing*100,'%, so it seems that it is unusual to have missing values in variants.')
+summary(nmis)
+```
+
+
+```{r, echo=F}
+cat('We find out that there are',length(which(nmis>=(n.individuals/2))),'variants with more than',(n.individuals/2),' (50%) missing values.\n We will see some examples:')
+head(JPT[which(nmis>=(n.individuals/2)),])
+```
+
+So, if we only keep the variants with less than the 50% of missings our new dataset will have this number of variants:
+
+```{r}
+new.JPT<-JPT[which(nmis<(n.individuals/2)),]
+nrow(new.JPT) 
+```
+
+
+## Exercise 4
+
+**Calculate the percentage of monomorphic variants. Exclude all monomorphics from the database for all posterior computations of the practical. How many variants do remain in your database?**
+
+Now we will see how many variants do we have where the total number of genotypes is equal to the number of individuals we have in the subset. We've seen that:
+
+```{r echo=F}
+attach(new.JPT)
+cat('There are',nrow(new.JPT[which(((fAA+mAA)==n.individuals) | ((fAB+mAB)==n.individuals) | ((fBB+mBB)==n.individuals)),]),'monomorphic variants.')
+```
+
+
+```{r, echo=F}
+cat('Table that verifies if all the individuals are monomorphic with AA\n')
+table(ifelse(AA==n.individuals | fAA==n.females | mAA==n.males,'AA monomorphic','No AA monomorphic'))
+
+cat('Table that verifies if all the individuals are monomorphic with AB\n')
+table(ifelse(AB==n.individuals | fAB==n.females | mAB==n.males,'AB monomorphic','No AB monomorphic'))
+
+cat('Table that verifies if all the individuals are monomorphic with BB\n')
+table(ifelse(BB==n.individuals | fBB==n.females | mBB==n.males,'BB monomorphic','No BB monomorphic'))
+
+nrow(new2.JPT[which(AA==n.individuals | fAA==n.females | mAA==n.males | AB==n.individuals | fAB==n.females | mAB==n.males),])
+new2.JPT <- new.JPT[-which(AA==n.individuals | fAA==n.females | mAA==n.males | AB==n.individuals | fAB==n.females | mAB==n.males),]
+```
+
+```{r, echo=F}
+cat('So, the now we will deal with',nrow(new2.JPT),'different variants.')
+```
+
+
+## Exercise 5
+
+**Write a function to compute the minor allele frequency on the basis of a vector of genotype counts. Make sure the function also produces sensible answers for markers that consist of missing values only, or markers that are monomorphic. Include the source code of your function here.**
+
+```{r}
+minor.allele.frequency <- function(vector){ #We will take the vector as input of the function.
+  #(1) We will calculate the n:
+  n <- sum(vector)
+  #(2) We check if there are only missing values
+  only.miss <- length(which(is.na(vector)==TRUE)) == length(vector)
+  #(3) We also check if we are treating monomorphics
+  mono <- max(vector==n)
+  
+  if(only.miss){
+    cat('This marker',i,' of genotype counts is created by only missing values.\n')
+  }else if(mono>0){
+    cat('This marker',i,'is monomorphic.\n')
+  }else{
+    #Position1='AA', Position2='AB', Position3='BB'
+    f.A <- (vector[1]+0.5*vector[2])/n #Frequency of A
+    f.B <- (vector[3]+0.5*vector[2])/n #Frequency of B
+    maf <- round(min(c(f.A[1,1],f.B[1,1])),4) #MAF
+    return(maf)
+  }
+}
+
+```
+
+
+## Exercise 6
+
+**Compute the minor allele frequencies (MAF) for all markers, and make a histogram of it. Does the MAF follow a uniform distribution? What percentage of the markers have a maf below 0.05? And below 0.01?**
+
+```{r, echo=F}
+v.maf<-c(); vm.maf<-c(); vf.maf<-c()
+for(i in 1:nrow(new2.JPT)){
+  
+  # MINOR ALLELE FREQUENCY 
+  v.maf[i] <- minor.allele.frequency(new2.JPT[i,c('AA','AB','BB','nmis')])
+  
+  # MINOR ALLELE FREQUENCY FOR MALES
+  if(sum(new2.JPT[i,c('mAA','mAB','mBB')])!=0){
+    vm.maf[i] <- minor.allele.frequency(new2.JPT[i,c('mAA','mAB','mBB','nmis')])
+  }
+  
+  # MINOR ALLELE FREQUENCY FOR FEMALES
+  if(sum(new2.JPT[i,c('fAA','fAB','fBB')])!=0){ 
+    vf.maf[i] <- minor.allele.frequency(new2.JPT[i,c('fAA','fAB','fBB','nmis')]) 
+  }
+}
+```
+```{r, echo=F, warning=F}
+library(ggplot2)
+ggplot() +
+  aes(x = v.maf) +
+  geom_histogram(bins = 49, fill = "#0c4c8a") +
+  labs(title = "Histogram of the MAF for all remaining markers",
+    x = "Minor Allele Frequency") +
+  theme_minimal()
+```
+
+As it can be seen this doesn't follow a uniform distribution. Most part of the markers takes lower values, so it is more similar to an exponential distribution.\\
+
+If we take a look at the markers that have a minimum allele frequency taking as threshold the 0.05 we can see this distribution:
+```{r, echo=F}
+table(ifelse(v.maf<0.05,'MAF<0.05','MAF>=0.05'))
+```
+
+And with the threshold 0.01:
+
+```{r, echo=F}
+table(ifelse(v.maf<0.01,'MAF<0.01','MAF>=0.01'))
+```
+
+So, there are many cases that have a low value of MAF. If we take a look at the proportion we can see that:
+```{r, echo=F}
+cat('In the case of 0.05 we have a',round((length(which(v.maf<0.05))/nrow(new2.JPT))*100,2),'% of markers.\nAnd, with 0.01 we have a',round((length(which(v.maf<0.01))/nrow(new2.JPT))*100,2),'%.')
+```
+
+
+## Exercise 7
+
+**One might expect that the minor allele in males is the same as the minor allele of the females. For what percentage of the variants is this not the case?**
+
+```{r, echo=F}
+((table(ifelse(vm.maf==vf.maf,'Equal minor allele','Different minor allele')))/nrow(new2.JPT))*100
+```
+
+Here we can see that the are few cases that have the same minor allele in females than in males. That's why we are comparing so many units. In order to avoid that we have compared several values. It is quite difficult to have exactly the same maf, that's why we decided to round these values and compare them again. These are the results:
+
+```{r echo=F}
+((table(ifelse(round(vm.maf,2)==round(vf.maf,2),'Equal minor allele','Different minor allele')))/nrow(new2.JPT))*100
+```
+
+Rounding the units taking only 2 decimals we have found the the percentage of equal mafs in males than in females has increased. \\
+So, it is important to know which mafs do we want to compare. In one case we will have 
+
+
+## Exercise 8
+**Calculate the minor allele frequency for males and for females and present a scatterplot of these variables. Calculate and report their correlation coeficient.**
+
+```{r echo=F}
+ggplot() +
+  aes(x = vm.maf, y = vf.maf) +
+  geom_point(color = "#0c4c8a") +
+  labs(title = "MAF (males vs. females)",
+    x = "Minor allele frequency (Male)",
+    y = "Minor allele frequency (Female)",
+    subtitle = paste("(cor = ",round(cor(vm.maf,vf.maf),3),')',sep='')) +
+  theme_minimal()
+```
+
+As we can see both variables are high correlated (95\%).
+
+
+## Exercise 9
+**Compute for each marker its expected heterozygosity, where the expected heterozygosity for a bi-allelic markers is defined as $1 - sum(i in 1..Pk) p_i^2$, where $p_i$ is the frequency of the ith allele. Compute the average expected heterozygosity over all markers. Make a histogram of the expected heterozygosity.**
+
+```{r, echo=F}
+final.data <- data.frame(new2.JPT,'MAF'=v.maf,'mMAF'=vm.maf,'fMAF'=vf.maf)
+He<-c()
+```
+
+It is important to know that the heterozygosity, which is calculated across a number of loci, is a valuable parameter used to estimate the degree of genetic variation within a population.
+
+```{r}
+for(i in 1:nrow(final.data)){
+  # We are treating Bi-allelic markers, so we will have two frequencies: pA, pB.
+  pA <- (final.data[i,'AA']+(final.data[i,'AB']/2))/n.individuals
+  pB <- (final.data[i,'BB']+(final.data[i,'AB']/2))/n.individuals
+  He[i]<-1-sum(pA^2,pB^2)  
+}
+```
+
+If we take a look at the heterozigosity of our sample we can see that:
+
+```{r echo=F}
+ggplot() +
+  aes(x = He) +
+  geom_histogram(bins = 49, fill = "#0c4c8a") +
+  labs(title = "Histogram of the Expected Heterozygosity",
+    subtitle = paste("mean(He)=",round(mean(He),sep=''),3),
+    x = "Expected Heterozygosity (He)") +
+  theme_minimal()
+```
+

@@ -1,0 +1,104 @@
+---
+title: "BSG - Haplotype estimation"
+author: "Ricard Gardella, Sofia B. Reichl"
+date: "28th November 2018"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(HardyWeinberg)
+library(genetics)
+library(ggplot2)
+library(gridExtra)
+library(LDheatmap)
+library(haplo.stats)
+set.seed(123)
+```
+
+# Exercise 1
+
+**Myoglobin is an oxygen-binding protein found in muscle tissue. The protein is encoded by the
+MB gene, which resides on the long arm of chromosome 22. The file MB.rda contains genotype
+information of unrelated individuals for a set of SNPs in the MB gene. The file contains genotype
+information in object Y. Load this data into the R environment.**
+
+In this line we load the data set into R.
+
+```{r}
+load('/Users/ricardgardellagarcia/Documents/Master Data science/BSG/Part2/practiques/practica4/MB.rda')
+
+```
+
+
+
+# Exercise 2
+
+**How many individuals and how many SNPs are there in the database? What percentage of the data is missing?**
+
+```{r, echo=FALSE}
+cat('We have',ncol(Y),'individuals in the database.') 
+cat('And we have',nrow(Y),"SNP's in the database.") 
+cat("The percentatge of data missign is ",(length(Y[is.na(Y)])/(ncol(Y)*nrow(Y)))*100,"%")
+```
+
+# Exercise 3
+
+**Assuming all SNPs are bi-allelic, how many haplotypes can theoretically be found for this data set?**
+
+```{r}
+cat("Assuming that all SNPs are bi-allelic we will have ", 2*ncol(Y),"haplotypes")
+```
+
+#Exercise 4
+
+**Estimate haplotype frequencies using the haplo.stats package (set the minimum posterior
+probability to 0.001). How many haplotypes do you find? List the haplotypes and their estimated
+probabilities. Which haplotype is the most common?** 
+
+As we need the haplotypes, we have to create a new data set, this data set, each cell will be a haplotype. Using the function in the haplo package we can obtain different data about our haplotypes.
+```{r, echo=FALSE}
+haploData <- cbind(substr(Y[,1],1,1),substr(Y[,1],2,2))
+for(i in 2:ncol(Y)) {
+  haploData <- cbind(haploData,substr(Y[,i],1,1),substr(Y[,i],2,2))
+}
+snpnames <- paste("snp", 1:28,sep="")
+h = haplo.em(haploData, control=haplo.em.control(min.posterior=1e-3))
+
+cat("We have ",nrow(h$haplotype)," haplotypes")
+for(i in 1:nrow(h$haplotype)){
+  print("")
+  cat('The haplotype:')
+  print(h$haplotype[i,])
+  cat('have a probability of :' ,h$hap.prob[i])
+}
+print("The most common haplotype is")
+h$haplotype[nrow(h$haplotype),]
+
+```
+
+# Exercise 5
+ **Is the haplotypic constitution of any of the individuals in the database ambiguous or uncertain? If so, for which individuals? What is, in case, the most likely haplotypic constitution of any possibly uncertain individuals?**
+
+We can see that the individual 22 have 3 haplotype pairs, so that means that this individual is an individual that is uncertain. This is the only individual in the data set that is ambiguous. Then, as we know that this individual have 3 haplotype pairs, we retrieve those 3 pairs, showing the probability of each one. We can see that for that individual the most tipical haplotype of being uncertain is haplotypes 2 and 6.
+
+We cannot generalize in this case as we only have one individual that is uncertain.
+
+```{r ex5}
+h$nreps
+h$post[22:24]
+code = h$hap1code[22:24]
+code2 = h$hap2code[22:24]
+code
+code2
+#Most common haplotype.
+h$haplotype[code[3],]
+h$haplotype[code2[3],]
+
+
+
+
+```
+

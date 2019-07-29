@@ -1,0 +1,101 @@
+#The STR Dataset
+
+The STR Dataset *FrenchSTRs.dat* contains genotype information (STRs) of individuals from a French population. The first column of the data set contains an identifier the individual. STR data starts at the second column.
+
+##Exercise 1
+Before starting this part of the assignment we must import he data set into R.
+```{r}
+FrenchSTRs <- read.table("FrenchSTRs.dat", quote="\"", comment.char="")
+```
+
+
+##Exercise 2
+
+**How many individuals and how many STRs contains the database?**
+
+In order to know the number of individuals we execute the following command.
+```{r}
+length(unique(FrenchSTRs$Individual))
+```
+
+Also we want to know the number of STR in the data set, that is computed by selecting the number of variables and substracting one, because, the first one is the ID of the individual.
+
+```{r}
+ncol(FrenchSTRs)-1
+```
+
+
+## Exercise 3
+
+**The value -9 indicates a missing value. Replace all missing values by NA. What percentage of the total amount of datavalues is missing?**
+
+In order to change all the -9 to NA we use the following command to select all the -9 in the data set and replacing them for a NA.
+
+```{r}
+FrenchSTRs[FrenchSTRs == -9] = NA
+```
+
+Computing the % of missing values is done in the following command. 
+
+```{r}
+(sum(length(which(is.na(FrenchSTRs))))/(ncol(FrenchSTRs)*nrow(FrenchSTRs)))*100
+```
+
+##Exercise 4
+
+**Write a function that determines the number of alleles for a STR. Determine the number of alleles for each STR in the database. Compute basic descriptive statistics of the number of alleles (mean, standard deviation, median, minimum, maximum).**
+
+We have done this exercise by creating a function to be more efficient that using a for, due that are specially ineficient in R.
+
+We have created a function and then, using apply, we executed it for the whole dataset.
+
+The function name is countAlleles, just count Alleles like the one that was implemented in the example code.
+
+We end by computing a summary that will give us all the information we need except the standard deviation that is computed using the method sd.
+
+```{r}
+countAlleles <- function(x){
+  y <- length(unique(x[!is.na(x)]))
+  return(y)
+}
+resultAlleles = apply(FrenchSTRs, 2, countAlleles)
+#summary of the result
+summary(resultAlleles)
+#standard deviation
+sd(resultAlleles)
+```
+
+## Exercise 5
+
+**Make a table with the number of STRs for a given number of alleles and present a barplot of the number STRs in each category. What is the most common number of alleles for an STR?**
+
+In this exercise we just executed a barplot using the result of the last exercise. The most common number of alleles for an STR is 155.
+
+```{r}
+barplot(table(resultAlleles))
+```
+
+
+##Exercise 6
+
+**Compute the expected heterozygosity for each STR. Make a histogram of the expected herozygosity over all STRS. Compute the average expected heterozygosity over all STRs.**
+
+For this exercise we also created a function and used the apply R function to be more efficient.
+
+We implemented the formula of the expected Heterozygote and we obtained that the average expected heterozygote is 75.74%
+
+```{r}
+expectedHeterozygote <- function(x){
+  1-sum((unique(table(x[!is.na(x)]))/length(x))^2) #formula from slides.
+}
+resultExpected = apply(FrenchSTRs, 2, expectedHeterozygote)
+summary(resultExpected)
+```
+
+##Exercise 7
+
+**Compare the results you obtained for the SNP database with those you obtained for the STR database. What differences do you observe between these two types of genetic markers?**
+
+It is difficult and not accurate to compare the results obtained by two datasets that are totally independent one from another. We also realized that the heterozygosity is very different in both data sets.
+
+

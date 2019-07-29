@@ -1,0 +1,137 @@
+---
+title: "BSG - Association Analysis"
+author: "Ricard Gardella, Sofia B. Reichl"
+date: "20th December 2018"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(HardyWeinberg)
+library(genetics)
+library(ggplot2)
+library(gridExtra)
+library(LDheatmap)
+library(haplo.stats)
+set.seed(123)
+```
+
+# Exercise 1
+
+**The file rs394221.dat contains genotype information, for cases and controls, of polymorphism rs394221,
+which is presumably related to Alzheimer's disease.Load the data file into the R environment.**
+
+```{r load}
+setwd("~/Documents/Master Data science/BSG/Part2/practiques/practica6")
+u <- read.table('rs394221.dat')
+```
+
+# Exercise 2
+
+**What is the sample size? What is the number of cases and the number of controls? Construct the
+contingency table of genotype by case/control status.**
+
+
+```{r}
+cat("The same size is ",nrow(u))
+Cases = c(0,0,0)
+Controls = c(0,0,0)
+#Here we create the table:
+for(i in 1:nrow(u)){
+  if(u[i,2] == "case")
+  {
+    if(u[i,1]=="MM")Cases[1] = Cases[1]+1
+    if(u[i,1]=="Mm")Cases[2] = Cases[2]+1
+    if(u[i,1]=="mm")Cases[3] = Cases[3]+1
+  }
+  else
+  {
+    if(u[i,1]=="MM")Controls[1] = Controls[1]+1
+    if(u[i,1]=="Mm")Controls[2] = Controls[2]+1
+    if(u[i,1]=="mm")Controls[3] = Controls[3]+1
+  }
+}
+X = rbind(Cases,Controls)
+rownames(X) = c("Cases","Controls")
+colnames(X) = c("MM","Mm","mm")
+cat("The number of cases is:", sum(X[1,]))
+cat("The number of controls is:", sum(X[2,]))
+X
+```
+
+# Execise 3 
+
+**Explore the data by plotting the percentage of cases as a function of the genotype, ordering the latter
+according to the number of M alleles. Which allele increases the risk of the disease?**
+
+We can observe that the MM genotype is the genotype with higher risk with a 49% of risk. In the plot we can see clearly this information, 2 being MM, 1 Mm and 0 mm. 
+
+```{r}
+total.genotype.counts = colSums(X)
+total.genotype.counts
+
+risk = Cases/total.genotype.counts
+risk
+
+plot(c(2,1,0),risk,ylim=c(0,1),type="b",xlab="Genotype",ylab="Risk") #plot of the risk
+
+```
+
+#Exercise 4
+**Test for equality of allele frequencies in cases and controls by doing an alleles test. Report the
+test statistic, its reference distribution, and the p-value of the test. Is there evidence for different allele
+frequencies?**
+
+Yes, we have evidence
+```{r}
+
+Y <- cbind(2*X[,1]+X[,2],2*X[,3]+X[,2])
+colnames(Y) <- c("1","2")
+Y
+
+res = chisq.test(Y,correct = FALSE)
+cat("The test statistic is : ", res$statistic, " so we can reject the hypothesis, si we can say that there is evidence for different allele frequencies.")
+
+fisher = fisher.test(Y)
+cat("The p-value of the test is: ",fisher$p.value)
+
+
+```
+
+#Exercise 5
+
+** Does a perfect representation of this n x n distance matrix exist, in n or fewer dimensions? **
+
+No idea...
+```{r}
+
+```
+
+#Exercise 6 
+ **What is the goodness-of-fit of a two-dimensional approximation to your distance matrix? **
+ 
+ Here we report the GoF using k=2 in the distance matrix.
+```{r}
+gof <- cmdscale(Y.dist, k=2, eig=TRUE)
+gof <- gof$GOF
+print(round(gof,digits=3))
+
+```
+#Exercise 7
+
+**Make a plot of the estimated distances (according to your map of individuals) versus the
+observed distances. Regress estimated distances on observed distances and report the coefficient of determination of the regression.**
+
+Here we see the differnece between the observed and the fitted values in the plot.
+
+```{r}
+X.dist = as.matrix(dist(X))
+
+x.1 <- Y.dist[lower.tri(Y.dist)] 
+x.2 <- X.dist[lower.tri(X.dist)] 
+plot(x.1, x.2, xlab="Observed", ylab="fitted")
+
+```
+

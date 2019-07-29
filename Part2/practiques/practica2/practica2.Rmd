@@ -1,0 +1,178 @@
+---
+title: "Statistical Genetics - 2nd Assignment"
+author: "Ricard Gardella, Sofia B. Reichl"
+date: "16th November 2018"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exercise 1
+**The file YRIChr1.rda contains genotype information (10000 SNPs) of individuals from an African
+population of unrelated individuals. Load this data into the R environment. The file contains a
+data objects, X, with genotype information. This data is in (0,1,2) format, where 0 and 2 represent the homozygotes AA and BB, and 1 represents the heterozygote AB.**
+
+```{r load}
+library(HardyWeinberg)
+load("/Users/ricardgardellagarcia/Documents/Master Data science/BSG/Part2/practiques/practica2/YRIChr1.rda")
+
+```
+
+## Exercise 2
+
+**How many individuals does the database contain?**
+
+We can conclude that we have 107 individuals, same as observations.
+```{r pressure, echo=FALSE}
+X[1:3]
+```
+
+**What percentage of the variants is monomorphic?**
+
+We have a 69.65% of monomorphic values as we can see in the results of the following code.
+
+```{r perofmonomorphic}
+data = 0
+for (i in 1:ncol(X))
+  {
+    if(sum(unique(X[i])) != 0) 
+      {
+      data = cbind(data, X[i]) 
+      }
+}
+data = data[-1]
+(ncol(X) - ncol(data)) /100 
+```
+
+**How many variants remain in the database?**
+
+The new data set have 3035 variants remaining.
+```{r}
+ncol(data)
+```
+
+**Determine the genotype counts for these variants, and store them in matrix.**
+
+In order to determine the genotypes, we create a matrix of 3 rows (AA,AB,BB). Then, we count all the apperances of an AA,AB and BB of every SNP. It is not necessary to label the rows as the library takes as default values that the rows will be AA, AB and BB, in this order.
+```{r}
+matrixvariants = matrix(data = 0,nrow = 3,ncol = ncol(data))
+for (i in 1:ncol(data))
+{
+  matrixvariants[1,i] = sum(data[i] == 0)
+  matrixvariants[2,i] = sum(data[i] == 1)
+  matrixvariants[3,i] = sum(data[i] == 2)
+}
+```
+
+**Apply a chi-square test without continuity correction for Hardy-Weinberg equilibrium to each SNP. How many SNPs are significant (use a = 0:05)?**
+
+We can observe that 1511 are in, the other ones are rejected.
+
+```{r test1, echo=FALSE}
+tmatrixvariants <- t(matrixvariants)
+HWChisq <- HWChisqStats(tmatrixvariants)
+```
+
+```{r}
+table(HWChisq >= 0.05)
+```
+
+## Exercise 3
+
+**How many markers of the remaining non-monomorphic markers would you expect to be out of equilibrium by the elect of chance alone?**
+
+```{r}
+round(nrow(tmatrixvariants) * 0.05)
+```
+
+
+## Exercise 4
+
+**Apply an Exact test for Hardy-Weinberg equilibrium to each SNP. You can use function HWExactStats for fast computation. How many SNPs are signifcant (use a = 0.05). Is the result
+consistent with the chi-square test?**
+
+Now 2909 pass the test, quite different than before, the results are not consistent with the chi-square test as we can observe in this results.
+```{r}
+HWExact <- HWExactStats(tmatrixvariants)
+table(HWExact >= 0.05)
+```
+
+##Exercise 5
+
+** Apply a likelihood ratio test for Hardy-Weinberg equilibrium to each SNP, using the HWLratio
+function. How many SNPs are significant (use a = 0:05). Is the result consistent with the chi-square
+test? **
+
+We can see that in this case we do not have an Stats function, so we crafted our own function. In this case the results are similar with the Exact test but not with the Chi-Square test, as we have 2890 p-values that pass the test.
+
+```{r ex5, echo=FALSE}
+pvaluesratio = 0
+HWratio <- function(x)
+{
+  test = HWLratio(x)
+  if(test$pval >= 0.05)
+  {
+    pvaluesratio <<- pvaluesratio + 1
+  }
+}
+apply(matrixvariants, 2, HWratio)
+pvaluesratio
+```
+
+```{r}
+pvaluesratio
+```
+
+##Exercise 6
+
+**Apply a permutation test for Hardy-Weinberg equilibrium to the first 10 SNPs, using the
+classical chi-square test (without continuity correction) as a test statistic. List the 10 p-values, together with the 10 p-values of the exact tests. Are the result consistent?**
+
+```{r ex6, echo=FALSE}
+(newmatrix <- tmatrixvariants[1:10,])
+(newmatrix <- cbind(newmatrix, round(HWChisqStats(newmatrix,pvalues=T),3)))
+(newmatrix <- cbind(newmatrix, round(HWExactStats(newmatrix[,1:3]),3)))
+```
+
+```{r}
+newmatrix
+```
+
+##Exercise 7
+
+**Depict all SNPs simultaeneously in a ternary plot, and comment on your result (because many
+genotype counts repeat, you may use UniqueGenotypeCounts to speed up the computations)**
+
+Here we can observe the unique genotype and how we count them. First we analyze the data performing different operation in the matrix to understand the data in a better way.
+
+```{r}
+UniqueGenotypeCounts(tmatrixvariants)
+dim(tmatrixvariants)
+head(tmatrixvariants)
+dim(UniqueGenotypeCounts(tmatrixvariants))
+dim(UniqueGenotypeCounts(tmatrixvariants)[1:3])
+head(UniqueGenotypeCounts(tmatrixvariants)[1:3])
+```
+
+In the plot we can see that half of the ternary plot is empty.
+```{r plot}
+HWTernaryPlot(UniqueGenotypeCounts(tmatrixvariants)[1:3])
+```
+
+## Exercise 8
+
+**Can you explain why half of the ternary diagram is empty?**
+
+Because A appear aproximately three times more than B. Also we can observe that there is no case where B appears more than A. So that's why we see half of the diagram empty.
+
+```{r}
+unique <- UniqueGenotypeCounts(tmatrixvariants)
+head(unique[1:3]); tail(unique[1:3])
+(A <- sum(unique[,1])+1/2*sum(unique[,2]))
+(B <- sum(unique[,3])+1/2*sum(unique[,2]))
+```
+

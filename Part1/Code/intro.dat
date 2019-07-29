@@ -1,0 +1,19 @@
+data;
+
+set ING := corn hops molt;
+
+set PROD := ale beer;
+
+param profit := 
+	ale 13
+	beer 23;
+	
+param supply :=
+	corn 480
+	hops 160
+	molt 1190;
+	
+param amt: ale beer :=
+	corn	5	15
+	hops	4	4
+	molt	35	20;

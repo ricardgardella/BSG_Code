@@ -1,0 +1,2 @@
+param n := 20;
+param m := 300;

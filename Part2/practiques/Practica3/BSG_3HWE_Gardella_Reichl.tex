@@ -1,0 +1,562 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdftitle={BSG - Hardy-Weinberg Equilibrium},
+            pdfauthor={Ricard Gardella, Sofia B. Reichl},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\newcommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+
+  \title{BSG - Hardy-Weinberg Equilibrium}
+    \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+    \author{Ricard Gardella, Sofia B. Reichl}
+    \preauthor{\centering\large\emph}
+  \postauthor{\par}
+      \predate{\centering\large\emph}
+  \postdate{\par}
+    \date{27th November 2018}
+
+
+\begin{document}
+\maketitle
+
+\section{Exercise 1}\label{exercise-1}
+
+\textbf{The file ABO-CHB.rda contains genotype information of
+individuals of a Chinese population of unrelated individuals. The
+genotype information concerns SNPs the ABO bloodgroup region, located on
+chromosome number 9. The file contains genotype information (Z,
+individuals in columns, SNPs in rows), the physical position of each SNP
+(pos) and the alleles for each SNP (alleles). Load this data into the R
+environment.}
+
+Load the data:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{#load('C:/Master/3rd Semestre/BSG - Bioinformatics and Statistical Genetics/Statistical Genetics/Assignments/Assignment3/ABO-CHB.rda')}
+\KeywordTok{load}\NormalTok{(}\StringTok{'/Users/ricardgardellagarcia/Documents/Master Data science/BSG/Part2/practiques/practica3/ABO-CHB.rda'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Exercise 2}\label{exercise-2}
+
+\textbf{How many individuals and how many SNPs are there in the
+database?}
+
+\begin{verbatim}
+## We have 45 individuals in the database.
+\end{verbatim}
+
+\begin{verbatim}
+## And we have 45 SNP's in the database.
+\end{verbatim}
+
+\textbf{What percentage of the data is missing?}
+
+\begin{verbatim}
+## And we have 61 missing data in the total number of observations: 2025 on the dataset.
+\end{verbatim}
+
+\begin{verbatim}
+## So, that means we have a 3.012346 % of missing data (which is normal)
+\end{verbatim}
+
+\section{Exercise 3}\label{exercise-3}
+
+\textbf{Depict all SNPs simultaeneously in a ternary plot, and comment
+on your result. Do you believe Hardy-Weinberg equilibrium is tenable for
+the markers in this database?}
+
+First of all we need to group all kind of genotypes we have in the
+dataset. We will use the typical structure where the individuals are in
+the rows and the different gentoypes are in the columns (grouped in AA,
+AB and BB).\\
+To do this we will use the \emph{groupGenotype()} function from the
+genetics package. This requires a transformation of each column into a
+\emph{genotype()} object.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{tmat <-}\StringTok{ }\KeywordTok{t}\NormalTok{(Z)}
+\CommentTok{# We've seen that in the dataset we have several combinations: AA, AT, AC, AG, AB...}
+\CommentTok{#So we will transform it into AA, AB and BB (alleles)}
+\NormalTok{map <-}\StringTok{ }\KeywordTok{list}\NormalTok{(}\StringTok{'AA'}\NormalTok{=}\KeywordTok{c}\NormalTok{(}\StringTok{'A/A'}\NormalTok{), }\StringTok{'TT'}\NormalTok{=}\KeywordTok{c}\NormalTok{(}\StringTok{'T/T'}\NormalTok{), }\StringTok{'CC'}\NormalTok{=}\KeywordTok{c}\NormalTok{(}\StringTok{'C/C'}\NormalTok{), }\StringTok{'GG'}\NormalTok{=}\KeywordTok{c}\NormalTok{(}\StringTok{'G/G'}\NormalTok{), }\StringTok{'AB'}\NormalTok{=}\StringTok{'.else'}\NormalTok{)}
+\NormalTok{genome <-}\StringTok{ }\KeywordTok{as.data.frame}\NormalTok{(}\KeywordTok{matrix}\NormalTok{(}\OtherTok{NA}\NormalTok{,}\DataTypeTok{nrow=}\DecValTok{45}\NormalTok{,}\DataTypeTok{ncol=}\DecValTok{3}\NormalTok{))}
+\KeywordTok{names}\NormalTok{(genome) <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{'AA'}\NormalTok{,}\StringTok{'AB'}\NormalTok{,}\StringTok{'BB'}\NormalTok{)}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\KeywordTok{ncol}\NormalTok{(tmat))\{}
+  \CommentTok{#We will do a table in order to know the number of variations we have in the dataset (for each column)}
+\NormalTok{  geno.table <-}\StringTok{ }\KeywordTok{table}\NormalTok{(}\KeywordTok{groupGenotype}\NormalTok{(}\DataTypeTok{x=}\KeywordTok{genotype}\NormalTok{(tmat[,i], }\DataTypeTok{sep=}\StringTok{''}\NormalTok{), }\DataTypeTok{map=}\NormalTok{map, }\DataTypeTok{factor=}\OtherTok{FALSE}\NormalTok{))}
+  \ControlFlowTok{if}\NormalTok{(}\KeywordTok{length}\NormalTok{(geno.table)}\OperatorTok{==}\DecValTok{3}\NormalTok{)\{}
+\NormalTok{    genome[i,}\StringTok{'AB'}\NormalTok{] <-}\StringTok{ }\NormalTok{geno.table[}\StringTok{'AB'}\NormalTok{]  }
+\NormalTok{    geno.table <-}\StringTok{ }\NormalTok{geno.table[}\KeywordTok{names}\NormalTok{(geno.table) }\OperatorTok{!=}\StringTok{ 'AB'}\NormalTok{]}
+\NormalTok{    genome[i,}\StringTok{'AA'}\NormalTok{] <-}\StringTok{ }\NormalTok{geno.table[}\DecValTok{1}\NormalTok{]}
+\NormalTok{    genome[i,}\StringTok{'BB'}\NormalTok{] <-}\StringTok{ }\NormalTok{geno.table[}\DecValTok{2}\NormalTok{]}
+\NormalTok{  \}}\ControlFlowTok{else} \ControlFlowTok{if}\NormalTok{(}\KeywordTok{length}\NormalTok{(geno.table)}\OperatorTok{==}\DecValTok{2}\NormalTok{)\{}
+\NormalTok{    genome[i,}\StringTok{'AB'}\NormalTok{] <-}\StringTok{ }\NormalTok{geno.table[}\StringTok{'AB'}\NormalTok{]  }
+\NormalTok{    geno.table <-}\StringTok{ }\NormalTok{geno.table[}\KeywordTok{names}\NormalTok{(geno.table) }\OperatorTok{!=}\StringTok{ 'AB'}\NormalTok{]}
+\NormalTok{    genome[i,}\StringTok{'AA'}\NormalTok{] <-}\StringTok{ }\NormalTok{geno.table[}\DecValTok{1}\NormalTok{]}
+\NormalTok{  \}}\ControlFlowTok{else} \ControlFlowTok{if}\NormalTok{(}\KeywordTok{length}\NormalTok{(geno.table)}\OperatorTok{==}\DecValTok{1}\NormalTok{)\{}
+\NormalTok{    genome[i,}\StringTok{'AB'}\NormalTok{] <-}\StringTok{ }\NormalTok{genocounts[}\StringTok{'AB'}\NormalTok{]  }
+\NormalTok{    geno.table <-}\StringTok{ }\NormalTok{geno.table[}\KeywordTok{names}\NormalTok{(geno.table) }\OperatorTok{!=}\StringTok{ 'AB'}\NormalTok{]}
+\NormalTok{    genome[i,}\StringTok{'AA'}\NormalTok{] <-}\StringTok{ }\NormalTok{geno.table[}\DecValTok{1}\NormalTok{]}
+\NormalTok{  \}}
+\NormalTok{\}}
+\CommentTok{# NA's will be 0}
+\NormalTok{genome[}\KeywordTok{is.na}\NormalTok{(genome)] <-}\StringTok{ }\DecValTok{0}
+\end{Highlighting}
+\end{Shaded}
+
+Now that we have the dataset we will to the HWTernaryPlot of it:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{HWTernaryPlot}\NormalTok{(genome)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{BSG_3HWE_Gardella_Reichl_files/figure-latex/plot-1.pdf}
+Thanks to the Ternary Plot we can see that the equilibrium is being
+satisfied for most of the data points (all the green ones).
+
+\section{Exercise 4}\label{exercise-4}
+
+\textbf{Using the function LD from the genetics package, compute the LD
+statistic D for the first two SNPs in the database. Is there significant
+association between these two SNPs?}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{SNP1 <-}\StringTok{ }\KeywordTok{genotype}\NormalTok{(tmat[,}\DecValTok{1}\NormalTok{],}\DataTypeTok{sep=}\StringTok{""}\NormalTok{)}
+\NormalTok{SNP2 <-}\StringTok{ }\KeywordTok{genotype}\NormalTok{(tmat[,}\DecValTok{2}\NormalTok{],}\DataTypeTok{sep=}\StringTok{""}\NormalTok{)}
+\NormalTok{(LD12 <-}\StringTok{ }\KeywordTok{LD}\NormalTok{(SNP1,SNP2))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Pairwise LD
+## -----------
+##                      D        D'       Corr
+## Estimates: -0.01600862 0.9974604 -0.1449029
+## 
+##               X^2  P-value  N
+## LD Test: 1.889716 0.169234 45
+\end{verbatim}
+
+\begin{verbatim}
+## We've seen that in this case the D statistic for SNP1 and SNP2 is: -0.02
+\end{verbatim}
+
+In order to know if there is a significant association between these we
+will take a look at the P-value of the Pairwise LD. It seems that there
+are no evidences to say that there is association between them, cause
+the pvalue takes a higher value than the \(\alpha\) we decided to use
+(\(\alpha=0.05\)).
+
+\section{Exercise 5}\label{exercise-5}
+
+\textbf{Given your previous estimate of D, and using the formula from
+the lecture slides, compute the statistics \(D'\); \(\chi^2\);\(R^2\)
+and \(r\) by hand for the first pair of SNPs. Do your results coincide
+with those obtained by the LD function? Can you explain possible
+differences?}
+
+First of all we will do some calcs in order to compute the statistics:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{D.fun <-}\StringTok{ }\NormalTok{LD12}\OperatorTok{$}\NormalTok{D}
+\NormalTok{t1 <-}\StringTok{ }\KeywordTok{table}\NormalTok{(SNP1)}
+\NormalTok{t2 <-}\StringTok{ }\KeywordTok{table}\NormalTok{(SNP2)}
+
+\CommentTok{# SNP1) A = G, a = A }
+\NormalTok{pA =}\StringTok{ }\KeywordTok{as.numeric}\NormalTok{(((t1[}\DecValTok{1}\NormalTok{]}\OperatorTok{/}\DecValTok{2}\NormalTok{)}\OperatorTok{+}\NormalTok{t1[}\DecValTok{2}\NormalTok{])}\OperatorTok{/}\DecValTok{45}\NormalTok{)}
+\NormalTok{pa =}\StringTok{ }\KeywordTok{as.numeric}\NormalTok{(((t1[}\DecValTok{1}\NormalTok{]}\OperatorTok{/}\DecValTok{2}\NormalTok{))}\OperatorTok{/}\DecValTok{45}\NormalTok{)}
+\CommentTok{#pA+pa==1}
+
+\CommentTok{# SNP2) B = G, b = A}
+\NormalTok{pB =}\StringTok{ }\KeywordTok{as.numeric}\NormalTok{(((t2[}\DecValTok{2}\NormalTok{]}\OperatorTok{/}\DecValTok{2}\NormalTok{)}\OperatorTok{+}\NormalTok{t2[}\DecValTok{3}\NormalTok{])}\OperatorTok{/}\DecValTok{45}\NormalTok{)}
+\NormalTok{pb =}\StringTok{ }\KeywordTok{as.numeric}\NormalTok{(((t2[}\DecValTok{2}\NormalTok{]}\OperatorTok{/}\DecValTok{2}\NormalTok{)}\OperatorTok{+}\NormalTok{t2[}\DecValTok{1}\NormalTok{])}\OperatorTok{/}\DecValTok{45}\NormalTok{)}
+\CommentTok{#pB+pb==1}
+
+\NormalTok{pApB =}\StringTok{ }\NormalTok{pA}\OperatorTok{*}\NormalTok{pB}
+\NormalTok{pApb =}\StringTok{ }\NormalTok{pA}\OperatorTok{*}\NormalTok{pb}
+\NormalTok{papB =}\StringTok{ }\NormalTok{pa}\OperatorTok{*}\NormalTok{pB}
+\NormalTok{papb =}\StringTok{ }\NormalTok{pa}\OperatorTok{*}\NormalTok{pb}
+\CommentTok{#pApB+pApb+papB+papb==1}
+\end{Highlighting}
+\end{Shaded}
+
+Now that we have the previous calcs we will do the calcs:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{Dmax =}\StringTok{ }\KeywordTok{min}\NormalTok{(pApB, papb)}
+  \StringTok{`}\DataTypeTok{D'}\StringTok{`}\NormalTok{ =}\StringTok{ }\NormalTok{LD12}\OperatorTok{$}\NormalTok{D}\OperatorTok{/}\NormalTok{Dmax}
+\NormalTok{R2 =}\StringTok{ }\NormalTok{D.fun}\OperatorTok{^}\DecValTok{2} \OperatorTok{/}\StringTok{ }\NormalTok{(pApB}\OperatorTok{*}\NormalTok{papb)}
+\NormalTok{X2 =}\StringTok{ }\NormalTok{R2 }\OperatorTok{*}\StringTok{ }\DecValTok{2}\OperatorTok{*}\KeywordTok{nrow}\NormalTok{(tmat)}
+\NormalTok{r =}\StringTok{ }\KeywordTok{sqrt}\NormalTok{(R2)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## So, the final results are:
+## - D' = -0.9974604 
+## - R2 = 0.02099684 
+## - X2 = 1.889716 
+## - r = 0.1449029
+\end{verbatim}
+
+We can see that the results are quite similar than the ones obtained
+with the function. But, it is notorious that the D' has different sign.
+Maybe the function applies the absolute value.
+
+\section{Exercise 6}\label{exercise-6}
+
+\textbf{Given your previous estimate of D, infer the haplotype
+frequencies. Which haplotype is the most common?}
+
+To do that we will use the previous calcs we have done in the Exercise
+5. These are the results:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{hPApB =}\StringTok{ }\NormalTok{pApB}\OperatorTok{+}\NormalTok{D.fun}
+\NormalTok{hPApb =}\StringTok{ }\NormalTok{pApb}\OperatorTok{-}\NormalTok{D.fun}
+\NormalTok{hPapB =}\StringTok{ }\NormalTok{papB}\OperatorTok{-}\NormalTok{D.fun}
+\NormalTok{hPapb =}\StringTok{ }\NormalTok{papb}\OperatorTok{+}\NormalTok{D.fun}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## In this case the final results are:
+## - Frequency of GG = 0.7444852 
+## - Frequency of GA = 0.1444037 
+## - Frequency of AG = 0.1110704 
+## - Frequency of AA = 4.075852e-05
+\end{verbatim}
+
+So, we can see that the most common haplotype is the one generated with
+GG, with a value of 52\%.
+
+\section{Exercise 7}\label{exercise-7}
+
+\textbf{Compute 4 LD statistics for all the marker pairs in this data
+base \(D'\);\(\chi^2\);\(R^2\). Make a scatterplot matrix of these.}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{stats =}\StringTok{ }\OtherTok{NULL}
+\NormalTok{c =}\StringTok{ }\KeywordTok{matrix}\NormalTok{(}\DataTypeTok{data =} \DecValTok{0}\NormalTok{, }\DataTypeTok{nrow=}\KeywordTok{nrow}\NormalTok{(tmat), }\DataTypeTok{ncol=}\KeywordTok{ncol}\NormalTok{(tmat))}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\NormalTok{(}\KeywordTok{ncol}\NormalTok{(tmat)}\OperatorTok{-}\DecValTok{1}\NormalTok{)) \{}
+  \ControlFlowTok{for}\NormalTok{(j }\ControlFlowTok{in}\NormalTok{ i}\OperatorTok{:}\KeywordTok{ncol}\NormalTok{(tmat)) \{}
+\NormalTok{    SNP1 <-}\StringTok{ }\KeywordTok{genotype}\NormalTok{(tmat[,i],}\DataTypeTok{sep=}\StringTok{""}\NormalTok{)}
+\NormalTok{    SNP2 <-}\StringTok{ }\KeywordTok{genotype}\NormalTok{(tmat[,j],}\DataTypeTok{sep=}\StringTok{""}\NormalTok{)}
+\NormalTok{    out <-}\StringTok{ }\KeywordTok{LD}\NormalTok{(SNP1,SNP2)}
+\NormalTok{    stats}\OperatorTok{$}\NormalTok{D[c] <-}\StringTok{ }\NormalTok{out}\OperatorTok{$}\NormalTok{D}
+\NormalTok{    stats}\OperatorTok{$}\StringTok{`}\DataTypeTok{D'}\StringTok{`}\NormalTok{[c] <-}\StringTok{ }\NormalTok{out}\OperatorTok{$}\StringTok{`}\DataTypeTok{D'}\StringTok{`}
+\NormalTok{    stats}\OperatorTok{$}\StringTok{`}\DataTypeTok{R^2}\StringTok{`}\NormalTok{[c] <-}\StringTok{ }\NormalTok{out}\OperatorTok{$}\StringTok{`}\DataTypeTok{R^2}\StringTok{`}
+\NormalTok{    stats}\OperatorTok{$}\StringTok{`}\DataTypeTok{X^2}\StringTok{`}\NormalTok{[c] <-}\StringTok{ }\NormalTok{out}\OperatorTok{$}\StringTok{`}\DataTypeTok{X^2}\StringTok{`}
+\NormalTok{    c =}\StringTok{ }\NormalTok{c}\OperatorTok{+}\DecValTok{1}
+\NormalTok{  \}}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{pairs}\NormalTok{(stats,}\DataTypeTok{col=}\StringTok{"#0c4c8a"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{BSG_3HWE_Gardella_Reichl_files/figure-latex/unnamed-chunk-13-1.pdf}
+
+\textbf{Is there an exact linear relationship between \(\chi^2\) and
+\(R^2\)? Why (not) so?}\\
+We can see that yes, they have a relationship. That's normal cause they
+are explaining almost the same. When the \(R^2\) is high then the model
+is explaining high variability from the data, that means that the
+\(\chi^2\) will be higher so, the pvalue will be lower and we will
+accept the test.
+
+\section{Exercise 8}\label{exercise-8}
+
+\textbf{Compute a distance matrix with the distance in base pairs
+between all possible pairs of SNPs.}\\
+There are correlations between the distances and R\^{}2. R\^{}2 tends to
+be higher when the distance is closer to 0.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{tmat.hamming =}\StringTok{ }\KeywordTok{t}\NormalTok{(tmat)}
+\NormalTok{m =}\StringTok{ }\KeywordTok{matrix}\NormalTok{(}\DataTypeTok{data =} \OtherTok{NA}\NormalTok{, }\DataTypeTok{nrow =} \KeywordTok{nrow}\NormalTok{(tmat), }\DataTypeTok{ncol=} \KeywordTok{ncol}\NormalTok{(tmat))}
+\NormalTok{r2 <-}\StringTok{ }\KeywordTok{matrix}\NormalTok{(}\DataTypeTok{data =} \DecValTok{0}\NormalTok{, }\DataTypeTok{nrow =} \KeywordTok{nrow}\NormalTok{(tmat), }\DataTypeTok{ncol=} \KeywordTok{ncol}\NormalTok{(tmat))}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\KeywordTok{ncol}\NormalTok{(tmat)) \{}
+  \ControlFlowTok{for}\NormalTok{(j }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\KeywordTok{ncol}\NormalTok{(tmat)) \{}
+\NormalTok{    m[i,j] =}\StringTok{ }\NormalTok{pos[i]}\OperatorTok{-}\NormalTok{pos[j]}
+\NormalTok{    r2[i,j] <-}\StringTok{ }\KeywordTok{LD}\NormalTok{(}\KeywordTok{genotype}\NormalTok{(tmat[,i],}\DataTypeTok{sep=}\StringTok{""}\NormalTok{),}\KeywordTok{genotype}\NormalTok{(tmat[,j],}\DataTypeTok{sep=}\StringTok{""}\NormalTok{))}\OperatorTok{$}\StringTok{`}\DataTypeTok{R^2}\StringTok{`}
+\NormalTok{  \}}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Make a plot of the \(R^2\) statistics against the distance
+between the markers. Comment on your results.}
+
+\includegraphics{BSG_3HWE_Gardella_Reichl_files/figure-latex/unnamed-chunk-15-1.pdf}
+
+\section{Exercise 9}\label{exercise-9}
+
+\textbf{Make two LD heatmaps of the markers in this database, one using
+the R2 statistic and one using the \(D'\) statistic, and use the
+positional information on the markers. Are the results consistent?}
+
+\includegraphics{BSG_3HWE_Gardella_Reichl_files/figure-latex/unnamed-chunk-17-1.pdf}
+\includegraphics{BSG_3HWE_Gardella_Reichl_files/figure-latex/unnamed-chunk-17-2.pdf}
+
+Thanks to the values that takes the \(D'\) we can see that almost all
+the SNPs are highly correlated between them. According to the \(R^2\) we
+can see that not all the SNPs are represented in high quantities. Some
+of them are highly represented. If we focus on that section and compare
+both heatmaps we can see that those SNPs are highly associated.
+
+\section{Exercise 10}\label{exercise-10}
+
+\textbf{Simulate 45 independent SNPs under the assumption of
+Hardy-Weinberg equilibrium, using R's sample instruction:}
+\emph{(sample(c(`AA',`AB',`BB'),n,replace=TRUE,prob=c(p\emph{p,2}p\emph{q,q}q)))}
+\textbf{Simulate as many SNPs as you have in your database, and take
+care to match each SNP in your database with a simulated SNP that has
+the same sample size and allele frequency.}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{n=}\DecValTok{45}\NormalTok{; q=p=}\OtherTok{NULL}\NormalTok{; simul<-}\KeywordTok{matrix}\NormalTok{(}\OtherTok{NA}\NormalTok{,}\DecValTok{45}\NormalTok{,}\DecValTok{3}\NormalTok{); }
+
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\NormalTok{n)\{}
+  
+  \CommentTok{# Calculating Allele Frequency}
+\NormalTok{  AA <-}\StringTok{ }\NormalTok{genome[i,}\DecValTok{1}\NormalTok{]}
+\NormalTok{  AB <-}\StringTok{ }\NormalTok{genome[i,}\DecValTok{2}\NormalTok{]}
+\NormalTok{  BB <-}\StringTok{ }\NormalTok{genome[i,}\DecValTok{3}\NormalTok{]}
+\NormalTok{  p =}\StringTok{ }\NormalTok{(AA}\OperatorTok{+}\NormalTok{AB}\OperatorTok{/}\DecValTok{2}\NormalTok{)}\OperatorTok{/}\NormalTok{n}
+\NormalTok{  q =}\StringTok{ }\DecValTok{1}\OperatorTok{-}\NormalTok{p}
+  
+  \CommentTok{# Simulating SNP}
+\NormalTok{  sample <-}\StringTok{ }\KeywordTok{sample}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{'AA'}\NormalTok{,}\StringTok{'AB'}\NormalTok{,}\StringTok{'BB'}\NormalTok{),n,}\DataTypeTok{replace=}\OtherTok{TRUE}\NormalTok{,}\DataTypeTok{prob=}\KeywordTok{c}\NormalTok{(p}\OperatorTok{*}\NormalTok{p,}\DecValTok{2}\OperatorTok{*}\NormalTok{p}\OperatorTok{*}\NormalTok{q,q}\OperatorTok{*}\NormalTok{q)) }
+\NormalTok{  v <-}\StringTok{ }\KeywordTok{as.vector}\NormalTok{(}\KeywordTok{table}\NormalTok{(sample))}
+  \ControlFlowTok{if}\NormalTok{(}\KeywordTok{length}\NormalTok{(}\KeywordTok{table}\NormalTok{(sample)) }\OperatorTok{==}\StringTok{ }\DecValTok{3}\NormalTok{)\{ }\CommentTok{#c('AA','AB','BB')}
+\NormalTok{    simul[i,] <-}\StringTok{ }\NormalTok{v}
+\NormalTok{  \}}\ControlFlowTok{else} \ControlFlowTok{if}\NormalTok{(}\KeywordTok{names}\NormalTok{(}\KeywordTok{table}\NormalTok{(sample)) }\OperatorTok{==}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{'AB'}\NormalTok{,}\StringTok{'BB'}\NormalTok{))\{}
+\NormalTok{    simul[i,] <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{,v)}
+\NormalTok{  \}}\ControlFlowTok{else} \ControlFlowTok{if}\NormalTok{(}\KeywordTok{names}\NormalTok{(}\KeywordTok{table}\NormalTok{(sample)) }\OperatorTok{==}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{'AA'}\NormalTok{,}\StringTok{'AB'}\NormalTok{))\{}
+\NormalTok{    simul[i,] <-}\StringTok{ }\KeywordTok{c}\NormalTok{(v,}\DecValTok{0}\NormalTok{)}
+\NormalTok{  \}}\ControlFlowTok{else} \ControlFlowTok{if}\NormalTok{(}\KeywordTok{names}\NormalTok{(}\KeywordTok{table}\NormalTok{(sample)) }\OperatorTok{==}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{'AA'}\NormalTok{,}\StringTok{'BB'}\NormalTok{))\{}
+\NormalTok{    simul[i,] <-}\StringTok{ }\KeywordTok{c}\NormalTok{(v[}\DecValTok{1}\NormalTok{],}\DecValTok{0}\NormalTok{,v[}\DecValTok{2}\NormalTok{])}
+\NormalTok{  \}}\ControlFlowTok{else} \ControlFlowTok{if}\NormalTok{(}\KeywordTok{names}\NormalTok{(}\KeywordTok{table}\NormalTok{(sample)) }\OperatorTok{==}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{'AA'}\NormalTok{))\{}
+\NormalTok{    simul[i,] <-}\StringTok{ }\KeywordTok{c}\NormalTok{(v,}\DecValTok{0}\NormalTok{,}\DecValTok{0}\NormalTok{)}
+\NormalTok{  \}}\ControlFlowTok{else} \ControlFlowTok{if}\NormalTok{(}\KeywordTok{names}\NormalTok{(}\KeywordTok{table}\NormalTok{(sample)) }\OperatorTok{==}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{'AB'}\NormalTok{))\{}
+\NormalTok{    simul[i,] <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{,v,}\DecValTok{0}\NormalTok{)}
+\NormalTok{  \}}\ControlFlowTok{else}\NormalTok{\{}
+\NormalTok{    simul[i,] <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{0}\NormalTok{,v)}
+\NormalTok{  \}}
+\NormalTok{\}}
+\NormalTok{simulation <-}\StringTok{ }\KeywordTok{as.data.frame}\NormalTok{(simul)}
+\KeywordTok{colnames}\NormalTok{(simulation)<-}\KeywordTok{c}\NormalTok{(}\StringTok{'AA'}\NormalTok{,}\StringTok{'AB'}\NormalTok{,}\StringTok{'BB'}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## A piece of this simulation is this:
+\end{verbatim}
+
+\begin{verbatim}
+##   AA AB BB
+## 1 34 10  1
+## 2  1 12 32
+## 3 29 15  1
+## 4  7 25 13
+## 5 24 17  4
+## 6 17 20  8
+\end{verbatim}
+
+Now we have to transform this into a genotype dataset. This is how we
+will do it:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{geno.data <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}\KeywordTok{matrix}\NormalTok{(}\OtherTok{NA}\NormalTok{,}\KeywordTok{nrow}\NormalTok{(simulation),}\KeywordTok{nrow}\NormalTok{(simulation)))}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\KeywordTok{nrow}\NormalTok{(simulation))\{}
+\NormalTok{  row <-}\StringTok{ }\KeywordTok{c}\NormalTok{()}
+  \ControlFlowTok{for}\NormalTok{(j }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\KeywordTok{ncol}\NormalTok{(simulation))\{}
+    \CommentTok{# For each element on the simulation matrix we will create the repetition by frequencies.}
+\NormalTok{    values <-}\StringTok{ }\KeywordTok{rep}\NormalTok{(}\KeywordTok{colnames}\NormalTok{(simulation)[j], simulation[i,j])}
+\NormalTok{    row <-}\StringTok{ }\KeywordTok{c}\NormalTok{(row, values)}
+\NormalTok{  \}}
+\NormalTok{  geno.data[i,] <-}\StringTok{ }\KeywordTok{genotype}\NormalTok{(row,}\DataTypeTok{sep=}\StringTok{""}\NormalTok{)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## The final simulated genotype dataset will be:
+\end{verbatim}
+
+\begin{verbatim}
+##     1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18
+## 1 A/A A/A A/A A/A A/A A/B A/B A/B A/B A/B A/B A/B A/B A/B A/B A/B A/B A/B
+## 2 A/A A/A A/A A/A A/A A/A A/A A/A A/A A/A A/A A/A A/A A/A A/A A/A A/A A/A
+## 3 A/A A/A A/A A/A A/A A/B A/B A/B A/B A/B A/B A/B A/B A/B A/B A/B A/B A/B
+## 4 A/A A/A A/A A/A A/A A/A A/A A/A A/A A/A A/A A/A A/A A/A A/A A/A A/A A/A
+## 5 A/A A/A A/A A/A A/A A/A A/A A/A A/A A/A A/A A/A A/A A/A A/A A/A A/A A/A
+## 6 A/B A/B A/B A/B A/B A/B A/B A/B A/B A/B A/B A/B A/B A/B A/B A/B A/B A/B
+##    19  20  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36
+## 1 A/B A/B B/B B/B B/B B/B B/B B/B B/B B/B B/B B/B B/B B/B B/B B/B B/B B/B
+## 2 A/A A/A A/A B/A B/A B/A B/A B/A B/A B/A B/A B/A B/A B/A B/A B/A B/A B/A
+## 3 A/B A/B A/B B/A B/A B/A B/A B/A B/A B/A B/B B/B B/B B/B B/B B/B B/B B/B
+## 4 A/A A/B A/B B/A B/A B/A B/A B/A B/A B/A B/A B/A B/A B/A B/A B/A B/A B/A
+## 5 A/B A/B A/B B/A B/A B/A B/A B/A B/A B/A B/A B/A B/A B/A B/A B/A B/A B/A
+## 6 A/B A/B A/B B/A B/A B/A B/B B/B B/B B/B B/B B/B B/B B/B B/B B/B B/B B/B
+##    37  38  39  40  41  42  43  44  45
+## 1 B/B B/B B/B B/B B/B B/B B/B B/B B/B
+## 2 B/A B/A B/A B/A B/A B/A B/B B/B B/B
+## 3 B/B B/B B/B B/B B/B B/B B/B B/B B/B
+## 4 B/A B/A B/A B/A B/A B/B B/B B/B B/B
+## 5 B/A B/A B/A B/A B/A B/B B/B B/B B/B
+## 6 B/B B/B B/B B/B B/B B/B B/B B/B B/B
+\end{verbatim}
+
+\textbf{Make two LD heatmaps of the simulated SNPs, one using \(R^2\)
+and one using D'. Compare these to the LD heatmap of the ABO region.
+What do you observe? State your conclusions}
+
+\includegraphics{BSG_3HWE_Gardella_Reichl_files/figure-latex/unnamed-chunk-22-1.pdf}
+\includegraphics{BSG_3HWE_Gardella_Reichl_files/figure-latex/unnamed-chunk-22-2.pdf}
+
+In the simulated data we can see by the \(D'\) heatmap that all the SNPs
+are highly associated between them. If we focus on the \(R^2\) heatmap
+we can see that the SNPs are highly represented by its own and their
+relations between they neighbors but not with the SNPs that are far from
+them.
+
+\section{Exercise 11}\label{exercise-11}
+
+\textbf{Do you think there is strong or weak LD for the ABO region you
+just studied? Explain your opinion.} As we've seen on the Heatmaps of
+the exercise 9 with the D' statisic we can conclude that all the snps
+are highly associated between them, cause they all take high values. In
+the case of the \(R^2\) we've seen which where the best represented
+SNPs, cause the statistic takes high values. Because of this we can say
+that the ABO region we have studied has a strong LD.
+
+
+\end{document}

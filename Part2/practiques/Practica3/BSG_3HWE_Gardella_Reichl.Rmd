@@ -1,0 +1,347 @@
+---
+title: 'BSG - Hardy-Weinberg Equilibrium'
+author: 'Ricard Gardella, Sofia B. Reichl'
+date: '27th November 2018'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(HardyWeinberg)
+library(genetics)
+library(ggplot2)
+library(gridExtra)
+library(LDheatmap)
+set.seed(123)
+```
+
+# Exercise 1
+
+**The file ABO-CHB.rda contains genotype information of individuals of a Chinese population of unrelated individuals. The genotype information concerns SNPs the ABO bloodgroup region, located on chromosome number 9. The file contains genotype information (Z, individuals in columns, SNPs in rows), the physical position of each SNP (pos) and the alleles for each SNP (alleles). Load this data into the R environment.**
+
+Load the data:
+```{r}
+#load('C:/Master/3rd Semestre/BSG - Bioinformatics and Statistical Genetics/Statistical Genetics/Assignments/Assignment3/ABO-CHB.rda')
+load('/Users/ricardgardellagarcia/Documents/Master Data science/BSG/Part2/practiques/practica3/ABO-CHB.rda')
+
+```
+
+
+
+# Exercise 2
+
+**How many individuals and how many SNPs are there in the database?**
+
+```{r, echo=FALSE}
+cat('We have',ncol(Z),'individuals in the database.') 
+cat('And we have',nrow(Z),"SNP's in the database.") 
+```
+
+
+**What percentage of the data is missing?**  
+
+```{r echo=F}
+cat('And we have',sum(is.na(Z)),'missing data in the total number of observations:',nrow(Z)*ncol(Z),'on the dataset.');
+cat('So, that means we have a',(sum(is.na(Z))/(nrow(Z)*ncol(Z)))*100,'% of missing data (which is normal)')
+```
+
+
+
+# Exercise 3
+
+**Depict all SNPs simultaeneously in a ternary plot, and comment on your result. Do you believe Hardy-Weinberg equilibrium is tenable for the markers in this database?**    
+
+First of all we need to group all kind of genotypes we have in the dataset. We will use the typical structure where the individuals are in the rows and the different gentoypes are in the columns (grouped in AA, AB and BB).  
+To do this we will use the _groupGenotype()_ function from the genetics package. This requires a transformation of each column into a _genotype()_ object. 
+
+```{r}
+tmat <- t(Z)
+# We've seen that in the dataset we have several combinations: AA, AT, AC, AG, AB...
+#So we will transform it into AA, AB and BB (alleles)
+map <- list('AA'=c('A/A'), 'TT'=c('T/T'), 'CC'=c('C/C'), 'GG'=c('G/G'), 'AB'='.else')
+genome <- as.data.frame(matrix(NA,nrow=45,ncol=3))
+names(genome) <- c('AA','AB','BB')
+for(i in 1:ncol(tmat)){
+  #We will do a table in order to know the number of variations we have in the dataset (for each column)
+  geno.table <- table(groupGenotype(x=genotype(tmat[,i], sep=''), map=map, factor=FALSE))
+  if(length(geno.table)==3){
+    genome[i,'AB'] <- geno.table['AB']  
+    geno.table <- geno.table[names(geno.table) != 'AB']
+    genome[i,'AA'] <- geno.table[1]
+    genome[i,'BB'] <- geno.table[2]
+  }else if(length(geno.table)==2){
+    genome[i,'AB'] <- geno.table['AB']  
+    geno.table <- geno.table[names(geno.table) != 'AB']
+    genome[i,'AA'] <- geno.table[1]
+  }else if(length(geno.table)==1){
+    genome[i,'AB'] <- genocounts['AB']  
+    geno.table <- geno.table[names(geno.table) != 'AB']
+    genome[i,'AA'] <- geno.table[1]
+  }
+}
+# NA's will be 0
+genome[is.na(genome)] <- 0
+```
+
+Now that we have the dataset we will to the HWTernaryPlot of it:
+
+```{r plot, warning=F,fig.width=10,fig.height=4, fig.asp = .5}
+HWTernaryPlot(genome)
+```
+ Thanks to the Ternary Plot we can see that the equilibrium is being satisfied for most of the data points (all the green ones).
+
+# Exercise 4
+
+**Using the function LD from the genetics package, compute the LD statistic D for the first two SNPs in the database. Is there significant association between these two SNPs?**  
+
+```{r}
+SNP1 <- genotype(tmat[,1],sep="")
+SNP2 <- genotype(tmat[,2],sep="")
+(LD12 <- LD(SNP1,SNP2))
+```
+
+```{r echo=F}
+cat("We've seen that in this case the D statistic for SNP1 and SNP2 is:",round(LD12$D,2),'\n')
+```
+
+In order to know if there is a significant association between these we will take a look at the P-value of the Pairwise LD. It seems that there are no evidences to say that there is association between them, cause the pvalue takes a higher value than the $\alpha$ we decided to use ($\alpha=0.05$).
+
+
+# Exercise 5
+
+**Given your previous estimate of D, and using the formula from the lecture slides, compute the statistics $D'$; $\chi^2$;$R^2$ and $r$ by hand for the first pair of SNPs. Do your results coincide with those obtained by the LD function? Can you explain possible differences?**  
+
+First of all we will do some calcs in order to compute the statistics:  
+
+```{r}
+D.fun <- LD12$D
+t1 <- table(SNP1)
+t2 <- table(SNP2)
+
+# SNP1) A = G, a = A 
+pA = as.numeric(((t1[1]/2)+t1[2])/45)
+pa = as.numeric(((t1[1]/2))/45)
+#pA+pa==1
+
+# SNP2) B = G, b = A
+pB = as.numeric(((t2[2]/2)+t2[3])/45)
+pb = as.numeric(((t2[2]/2)+t2[1])/45)
+#pB+pb==1
+
+pApB = pA*pB
+pApb = pA*pb
+papB = pa*pB
+papb = pa*pb
+#pApB+pApb+papB+papb==1
+
+```
+
+Now that we have the previous calcs we will do the calcs:
+
+```{r}
+Dmax = min(pApB, papb)
+  `D'` = LD12$D/Dmax
+R2 = D.fun^2 / (pApB*papb)
+X2 = R2 * 2*nrow(tmat)
+r = sqrt(R2)
+```
+
+```{r echo=F}
+cat("So, the final results are:\n- D' =",`D'`,
+    '\n- R2 =',R2,'\n- X2 =',X2,'\n- r =',r)
+```
+
+We can see that the results are quite similar than the ones obtained with the function. But, it is notorious that the D' has different sign. Maybe the function applies the absolute value.
+
+
+# Exercise 6
+
+**Given your previous estimate of D, infer the haplotype frequencies. Which haplotype is the most common?**  
+
+To do that we will use the previous calcs we have done in the Exercise 5. These are the results:
+
+```{r}
+hPApB = pApB+D.fun
+hPApb = pApb-D.fun
+hPapB = papB-D.fun
+hPapb = papb+D.fun
+```
+
+```{r, echo=F}
+cat("In this case the final results are:\n- Frequency of GG =",hPApB,
+    '\n- Frequency of GA =',hPApb,'\n- Frequency of AG =',hPapB,'\n- Frequency of AA =',hPapb)
+```
+
+So, we can see that the most common haplotype is the one generated with GG, with a value of 52%.
+
+
+# Exercise 7
+
+**Compute 4 LD statistics for all the marker pairs in this data base $D'$;$\chi^2$;$R^2$. Make a scatterplot matrix of these.**  
+
+```{r}
+stats = NULL
+c = matrix(data = 0, nrow=nrow(tmat), ncol=ncol(tmat))
+for(i in 1:(ncol(tmat)-1)) {
+  for(j in i:ncol(tmat)) {
+    SNP1 <- genotype(tmat[,i],sep="")
+    SNP2 <- genotype(tmat[,j],sep="")
+    out <- LD(SNP1,SNP2)
+    stats$D[c] <- out$D
+    stats$`D'`[c] <- out$`D'`
+    stats$`R^2`[c] <- out$`R^2`
+    stats$`X^2`[c] <- out$`X^2`
+    c = c+1
+  }
+}
+```
+
+
+```{r, warning=F,fig.width=10,fig.height=4, fig.asp = .5}
+pairs(stats,col="#0c4c8a")
+```
+
+**Is there an exact linear relationship between $\chi^2$ and $R^2$? Why (not) so?**  
+We can see that yes, they have a relationship. That's normal cause they are explaining almost the same. When the $R^2$ is high then the model is explaining high variability from the data, that means that the $\chi^2$ will be higher so, the pvalue will be lower and we will accept the test.  
+
+
+# Exercise 8
+
+**Compute a distance matrix with the distance in base pairs between all possible pairs of SNPs.**  
+There are correlations between the distances and R^2. R^2 tends to be higher when the distance is closer to 0. We have used the absolute values when representing the plot.
+
+```{r}
+tmat.hamming = t(tmat)
+m = matrix(data = NA, nrow = nrow(tmat), ncol= ncol(tmat))
+r2 <- matrix(data = 0, nrow = nrow(tmat), ncol= ncol(tmat))
+for(i in 1:ncol(tmat)) {
+  for(j in 1:ncol(tmat)) {
+    m[i,j] = pos[i]-pos[j]
+    r2[i,j] <- LD(genotype(tmat[,i],sep=""),genotype(tmat[,j],sep=""))$`R^2`
+  }
+}
+```
+
+**Make a plot of the $R^2$ statistics against the distance between the markers. Comment on your results.**
+
+```{r,echo=F}
+plot(abs(m), abs(r2), ylab="R^2", xlab = "distance SNPs",col="#0c4c8a")
+```
+
+
+# Exercise 9
+
+**Make two LD heatmaps of the markers in this database, one using the R2 statistic and one using the $D'$ statistic, and use the positional information on the markers. Are the results consistent?**  
+  
+```{r echo=F,fig.width=10,fig.height=4, fig.asp = .5}
+markers <- data.frame(genotype(tmat[,1],sep=""))
+for(i in 2:ncol(tmat)) {
+   snp <- genotype(tmat[,i],sep="")
+   markers <- cbind(markers,snp)
+}
+colnames(markers) <- 1:45
+LD.markers <- LD(markers)
+```
+
+
+```{r echo=F,fig.width=10,fig.height=4, fig.asp = .5}
+rgb.palette <- colorRampPalette(rev(c("blue", "orange", "red")), space = "rgb")
+par(mfrow=c(1,2))
+
+LDheatmap(LD.markers$`R^2`,LDmeasure="r", genetic.distances=pos, add.map=TRUE, title="R2 heatmap",color=rgb.palette(18))
+LDheatmap(LD.markers$`D'`,LDmeasure="r", genetic.distances=pos, add.map=TRUE, title="D' heatmap",color=rgb.palette(18))
+```
+
+Thanks to the values that takes the $D'$ we can see that almost all the SNPs are highly correlated between them. According to the $R^2$ we can see that not all the SNPs are represented in high quantities. Some of them are highly represented. If we focus on that section and compare both heatmaps we can see that those SNPs are highly associated.  
+
+# Exercise 10
+
+**Simulate 45 independent SNPs under the assumption of Hardy-Weinberg equilibrium, using R's sample instruction:** _(sample(c('AA','AB','BB'),n,replace=TRUE,prob=c(p*p,2*p*q,q*q)))_ **Simulate as many SNPs as you have in your database, and take care to match each SNP in your database with a simulated SNP that has the same sample size and allele frequency.** 
+
+```{r warning=F}
+n=45; q=p=NULL; simul<-matrix(NA,45,3); 
+
+for(i in 1:n){
+  
+  # Calculating Allele Frequency
+  AA <- genome[i,1]
+  AB <- genome[i,2]
+  BB <- genome[i,3]
+  p = (AA+AB/2)/n
+  q = 1-p
+  
+  # Simulating SNP
+  sample <- sample(c('AA','AB','BB'),n,replace=TRUE,prob=c(p*p,2*p*q,q*q)) 
+  v <- as.vector(table(sample))
+  if(length(table(sample)) == 3){ #c('AA','AB','BB')
+    simul[i,] <- v
+  }else if(names(table(sample)) == c('AB','BB')){
+    simul[i,] <- c(0,v)
+  }else if(names(table(sample)) == c('AA','AB')){
+    simul[i,] <- c(v,0)
+  }else if(names(table(sample)) == c('AA','BB')){
+    simul[i,] <- c(v[1],0,v[2])
+  }else if(names(table(sample)) == c('AA')){
+    simul[i,] <- c(v,0,0)
+  }else if(names(table(sample)) == c('AB')){
+    simul[i,] <- c(0,v,0)
+  }else{
+    simul[i,] <- c(0,0,v)
+  }
+}
+simulation <- as.data.frame(simul)
+colnames(simulation)<-c('AA','AB','BB')
+```
+```{r echo=F}
+cat('A piece of this simulation is this:\n')
+head(simulation)
+```
+
+Now we have to transform this into a genotype dataset. This is how we will do it:
+
+```{r}
+geno.data <- data.frame(matrix(NA,nrow(simulation),nrow(simulation)))
+for(i in 1:nrow(simulation)){
+  row <- c()
+  for(j in 1:ncol(simulation)){
+    # For each element on the simulation matrix we will create the repetition by frequencies.
+    values <- rep(colnames(simulation)[j], simulation[i,j])
+    row <- c(row, values)
+  }
+  geno.data[i,] <- genotype(row,sep="")
+}
+```
+
+```{r, echo=F}
+final.geno <- data.frame(genotype(geno.data[,1]))
+for(i in 2:ncol(geno.data)) {
+   snp <- genotype(geno.data[,i])
+   final.geno <- cbind(final.geno,snp)
+}
+colnames(final.geno) <- 1:45
+final.geno <- final.geno[sample(nrow(final.geno)),]
+rownames(final.geno) <- 1:45
+
+cat('The final simulated genotype dataset will be:\n')
+head(final.geno)
+```
+
+
+**Make two LD heatmaps of the simulated SNPs, one using $R^2$ and one using D'. Compare these to the LD heatmap of the ABO region. What do you observe? State your conclusions**  
+
+```{r echo=F,warning=F,fig.width=10,fig.height=4, fig.asp = .5}
+LD.simulation <- LD(final.geno)
+rgb.palette <- colorRampPalette(rev(c("blue", "orange", "red")), space = "rgb")
+
+par(mfrow=c(1,2))
+LDheatmap(LD.simulation$`R^2`,LDmeasure="r", genetic.distances=pos, add.map=TRUE, title="R^2 heatmap", color=rgb.palette(18))
+LDheatmap(LD.simulation$`D'`, genetic.distances=pos, LDmeasure="D'", add.map=TRUE, title="D' heatmap", color=rgb.palette(18))
+```
+
+In the simulated data we can see by the $D'$ heatmap that all the SNPs are highly associated between them. If we focus on the $R^2$ heatmap we can see that the SNPs are highly represented by its own and their relations between they neighbors but not with the SNPs that are far from them.  
+
+# Exercise 11
+
+**Do you think there is strong or weak LD for the ABO region you just studied? Explain your opinion.** 
+As we've seen on the Heatmaps of the exercise 9 with the D' statisic we can conclude that all the snps are highly associated between them,  cause they all take high values. In the case of the $R^2$ we've seen which where the best represented SNPs, cause the statistic takes high values. 
+Because of this we can say that the ABO region we have studied has a strong LD.
